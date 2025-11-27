@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title> 2D Game </title>
+<title>2D Game</title>
 </head>
 <body>
 <div id="z2d-game-wrapper">
@@ -42,9 +42,11 @@
     groundHeight: 60,          // Altura del "suelo" desde la parte inferior
     backgroundStarCount: 120,  // Nº de estrellas
     jumpHeight: 40,            // Altura del salto en px
-    jumpUpDuration: 0.20,      // Segundos en subir (configurable)
-    jumpDownDuration: 0.40,    // Segundos en bajar (el doble)
+    jumpUpDuration: 0.20,      // Segundos en subir
+    jumpDownDuration: 0.40,    // Segundos en bajar (base)
+    jumpHoldFactor: 2.5,       // Multiplicador de bajada si mantienes espacio
     playerSpeed: 180,          // px/segundo al andar
+    playerRunSpeed: 280        // px/segundo al correr (tecla A)
   };
 
   /* ====== ENTRADAS DEL TECLADO (AISLADAS) ====== */
@@ -52,18 +54,21 @@
     left: false,
     right: false,
     jump: false,
+    run: false
   };
 
   window.addEventListener("keydown", function (e) {
     if (e.code === "ArrowLeft") { z2dKeys.left = true; }
     if (e.code === "ArrowRight") { z2dKeys.right = true; }
     if (e.code === "Space") { z2dKeys.jump = true; }
+    if (e.code === "KeyA") { z2dKeys.run = true; }
   });
 
   window.addEventListener("keyup", function (e) {
     if (e.code === "ArrowLeft") { z2dKeys.left = false; }
     if (e.code === "ArrowRight") { z2dKeys.right = false; }
     if (e.code === "Space") { z2dKeys.jump = false; }
+    if (e.code === "KeyA") { z2dKeys.run = false; }
   });
 
   /* ====== CLASES DEL JUEGO ====== */
@@ -156,10 +161,11 @@
     update(dt, platforms) {
       this.animTime += dt;
 
-      // Movimiento horizontal
+      // Movimiento horizontal con correr (tecla A)
       this.vx = 0;
-      if (z2dKeys.left) this.vx -= this.cfg.playerSpeed;
-      if (z2dKeys.right) this.vx += this.cfg.playerSpeed;
+      const speed = z2dKeys.run ? this.cfg.playerRunSpeed : this.cfg.playerSpeed;
+      if (z2dKeys.left) this.vx -= speed;
+      if (z2dKeys.right) this.vx += speed;
 
       this.worldX += this.vx * dt;
       if (this.worldX < 0) this.worldX = 0;
@@ -180,7 +186,10 @@
         }
       } else if (this.jumpPhase === "down") {
         this.jumpTimer += dt;
-        const t = Math.min(this.jumpTimer / this.cfg.jumpDownDuration, 1);
+        const baseDown = this.cfg.jumpDownDuration;
+        const factor = z2dKeys.jump ? this.cfg.jumpHoldFactor : 1;
+        const effectiveDownDuration = baseDown * factor;
+        const t = Math.min(this.jumpTimer / effectiveDownDuration, 1);
         this.y = (this.currentGroundY - this.height - jumpHeight) + jumpHeight * t;
         if (t >= 1) {
           this.jumpPhase = "idle";
@@ -204,7 +213,6 @@
     _checkVerticalCollisions(platforms) {
       // Base: suelo global
       let groundY = this.baseGroundY;
-      let onPlatform = false;
 
       for (const p of platforms) {
         const playerBottom = this.y + this.height;
@@ -223,7 +231,6 @@
           // Está en zona de caer encima
           if (platTop < groundY) {
             groundY = platTop;
-            onPlatform = true;
           }
         }
 
@@ -283,18 +290,23 @@
       const screenX = this.worldX - cameraX;
       const screenY = this.y;
 
-      // Cuerpo (cuadrado)
-      ctx.fillStyle = "#ffcc33";
+      // Cuerpo (cuadrado) con color medio transparente que luce
+      ctx.fillStyle = "rgba(0, 255, 200, 0.6)";
       ctx.fillRect(screenX, screenY, this.width, this.height);
 
-      // Animación de manos y pies (líneas)
+      // Pequeño borde para que destaque
+      ctx.strokeStyle = "rgba(0, 255, 255, 0.9)";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(screenX, screenY, this.width, this.height);
+
+      // Animación de manos y pies (líneas blancas)
       const isWalking = Math.abs(this.vx) > 5 && this.onGround;
       const baseSwingSpeed = isWalking ? 10 : 3;
       const baseAmplitude = isWalking ? 6 : 2;
       const swing = Math.sin(this.animTime * baseSwingSpeed) * baseAmplitude;
 
       ctx.lineWidth = 2;
-      ctx.strokeStyle = "#000000";
+      ctx.strokeStyle = "#ffffff";
 
       // Pies
       const footY = screenY + this.height;
