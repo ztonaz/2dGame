@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title> 2D Game </title>
+</head>
+<body>
+<div id="z2d-game-wrapper">
+  <canvas id="z2d-game-canvas"></canvas>
+</div>
+
+<style>
+  /* ====== ESTILOS AISLADOS PARA EL JUEGO Z2D ====== */
+  #z2d-game-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  #z2d-game-canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    background: #02040a;
+    border: 2px solid #444;
+    box-sizing: border-box;
+  }
+</style>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ====== CONFIGURACIÓN BÁSICA DEL JUEGO ====== */
+  const z2dConfig = {
+    canvasWidth: 900,
+    canvasHeight: 450,
+    worldWidth: 2400,          // Mundo horizontal más grande que la pantalla
+    groundHeight: 60,          // Altura del "suelo" desde la parte inferior
+    backgroundStarCount: 120,  // Nº de estrellas
+    jumpHeight: 40,            // Altura del salto en px
+    jumpUpDuration: 0.20,      // Segundos en subir (configurable)
+    jumpDownDuration: 0.40,    // Segundos en bajar (el doble)
+    playerSpeed: 180,          // px/segundo al andar
+  };
+
+  /* ====== ENTRADAS DEL TECLADO (AISLADAS) ====== */
+  const z2dKeys = {
+    left: false,
+    right: false,
+    jump: false,
+  };
+
+  window.addEventListener("keydown", function (e) {
+    if (e.code === "ArrowLeft") { z2dKeys.left = true; }
+    if (e.code === "ArrowRight") { z2dKeys.right = true; }
+    if (e.code === "Space") { z2dKeys.jump = true; }
+  });
+
+  window.addEventListener("keyup", function (e) {
+    if (e.code === "ArrowLeft") { z2dKeys.left = false; }
+    if (e.code === "ArrowRight") { z2dKeys.right = false; }
+    if (e.code === "Space") { z2dKeys.jump = false; }
+  });
+
+  /* ====== CLASES DEL JUEGO ====== */
+
+  class Z2DStarfield {
+    constructor(cfg, rng) {
+      this.cfg = cfg;
+      this.rng = rng;
+      this.stars = [];
+      this._createStars();
+    }
+
+    _createStars() {
+      this.stars.length = 0;
+      for (let i = 0; i < this.cfg.backgroundStarCount; i++) {
+        this.stars.push({
+          x: this.rng() * this.cfg.worldWidth,
+          y: this.rng() * this.cfg.canvasHeight,
+          size: 1 + this.rng() * 2,
+          factor: 0.2 + this.rng() * 0.6  // para que se muevan distinto (parallax)
+        });
+      }
+    }
+
+    draw(ctx, cameraX) {
+      ctx.fillStyle = "#02040a";
+      ctx.fillRect(0, 0, this.cfg.canvasWidth, this.cfg.canvasHeight);
+
+      ctx.fillStyle = "#ffffff";
+      for (const star of this.stars) {
+        const screenX = star.x - cameraX * star.factor;
+        // Reposicionar si se sale demasiado por los lados
+        let sx = screenX;
+        if (sx < -50) sx += this.cfg.worldWidth + 100;
+        if (sx > this.cfg.canvasWidth + 50) sx -= this.cfg.worldWidth + 100;
+
+        ctx.beginPath();
+        ctx.arc(sx, star.y, star.size * 0.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  }
+
+  class Z2DPlatform {
+    constructor(x, y, w, h) {
+      this.x = x;
+      this.y = y;
+      this.w = w;
+      this.h = h;
+    }
+
+    draw(ctx, cameraX) {
+      const sx = this.x - cameraX;
+      ctx.fillStyle = "#33ffaa";
+      ctx.fillRect(sx, this.y, this.w, this.h);
+    }
+  }
+
+  class Z2DPlayer {
+    constructor(cfg, groundY) {
+      this.cfg = cfg;
+      this.width = 32;
+      this.height = 50;
+      this.worldX = 80;
+      this.y = groundY - this.height;
+      this.baseGroundY = groundY;
+
+      this.vx = 0;
+      this.onGround = true;
+      this.currentGroundY = groundY;
+
+      // Estado de salto paramétrico
+      this.jumpPhase = "idle";   // idle | up | down
+      this.jumpTimer = 0;
+      this.jumpStartY = this.y;
+
+      // Animación
+      this.animTime = 0;
+    }
+
+    startJump() {
+      if (!this.onGround) return;
+
+      this.onGround = false;
+      this.jumpPhase = "up";
+      this.jumpTimer = 0;
+      this.jumpStartY = this.y;
+    }
+
+    update(dt, platforms) {
+      this.animTime += dt;
+
+      // Movimiento horizontal
+      this.vx = 0;
+      if (z2dKeys.left) this.vx -= this.cfg.playerSpeed;
+      if (z2dKeys.right) this.vx += this.cfg.playerSpeed;
+
+      this.worldX += this.vx * dt;
+      if (this.worldX < 0) this.worldX = 0;
+      if (this.worldX > this.cfg.worldWidth - this.width) {
+        this.worldX = this.cfg.worldWidth - this.width;
+      }
+
+      // Salto paramétrico (sin física real, más fácil de controlar)
+      const jumpHeight = this.cfg.jumpHeight;
+
+      if (this.jumpPhase === "up") {
+        this.jumpTimer += dt;
+        const t = Math.min(this.jumpTimer / this.cfg.jumpUpDuration, 1);
+        this.y = this.currentGroundY - this.height - jumpHeight * t;
+        if (t >= 1) {
+          this.jumpPhase = "down";
+          this.jumpTimer = 0;
+        }
+      } else if (this.jumpPhase === "down") {
+        this.jumpTimer += dt;
+        const t = Math.min(this.jumpTimer / this.cfg.jumpDownDuration, 1);
+        this.y = (this.currentGroundY - this.height - jumpHeight) + jumpHeight * t;
+        if (t >= 1) {
+          this.jumpPhase = "idle";
+          this.onGround = true;
+          this.y = this.currentGroundY - this.height;
+        }
+      }
+
+      // Si no está en salto, “gravedad” simple por si se cae de una plataforma
+      if (this.jumpPhase === "idle" && !this.onGround) {
+        this.y += 150 * dt; // caída simple
+      }
+
+      // Colisión vertical con plataformas (solo desde arriba, tipo suelo)
+      this._checkVerticalCollisions(platforms);
+
+      // Colisión lateral con plataformas (para no atravesar el cuadrado de 20px)
+      this._checkHorizontalCollisions(platforms);
+    }
+
+    _checkVerticalCollisions(platforms) {
+      // Base: suelo global
+      let groundY = this.baseGroundY;
+      let onPlatform = false;
+
+      for (const p of platforms) {
+        const playerBottom = this.y + this.height;
+        const playerRight = this.worldX + this.width;
+        const playerLeft = this.worldX;
+
+        const platTop = p.y;
+        const platBottom = p.y + p.h;
+        const platLeft = p.x;
+        const platRight = p.x + p.w;
+
+        const horizontallyOver = playerRight > platLeft && playerLeft < platRight;
+
+        // Revisar si está cayendo sobre la plataforma
+        if (horizontallyOver && playerBottom <= platTop + 10 && playerBottom >= platTop - 25) {
+          // Está en zona de caer encima
+          if (platTop < groundY) {
+            groundY = platTop;
+            onPlatform = true;
+          }
+        }
+
+        // Bloqueo desde abajo (por si acaso)
+        const playerTop = this.y;
+        if (horizontallyOver && playerTop <= platBottom && playerTop > platTop) {
+          // Golpea desde abajo: lo empujamos un poco hacia abajo
+          this.y = platBottom + 1;
+        }
+      }
+
+      // Actualizar suelo actual
+      this.currentGroundY = groundY;
+
+      const playerBottomNow = this.y + this.height;
+      if (playerBottomNow >= this.currentGroundY) {
+        this.y = this.currentGroundY - this.height;
+        this.onGround = true;
+        if (this.jumpPhase !== "idle") {
+          this.jumpPhase = "idle";
+          this.jumpTimer = 0;
+        }
+      } else {
+        this.onGround = false;
+      }
+    }
+
+    _checkHorizontalCollisions(platforms) {
+      for (const p of platforms) {
+        const playerRight = this.worldX + this.width;
+        const playerLeft = this.worldX;
+        const playerTop = this.y;
+        const playerBottom = this.y + this.height;
+
+        const platLeft = p.x;
+        const platRight = p.x + p.w;
+        const platTop = p.y;
+        const platBottom = p.y + p.h;
+
+        const verticallyOverlaps = playerBottom > platTop && playerTop < platBottom;
+
+        if (!verticallyOverlaps) continue;
+
+        // Movimiento hacia la derecha: choca contra lado izquierdo de la plataforma
+        if (this.vx > 0 && playerRight > platLeft && playerLeft < platLeft) {
+          this.worldX = platLeft - this.width;
+        }
+
+        // Movimiento hacia la izquierda: choca contra lado derecho de la plataforma
+        if (this.vx < 0 && playerLeft < platRight && playerRight > platRight) {
+          this.worldX = platRight;
+        }
+      }
+    }
+
+    draw(ctx, cameraX) {
+      const screenX = this.worldX - cameraX;
+      const screenY = this.y;
+
+      // Cuerpo (cuadrado)
+      ctx.fillStyle = "#ffcc33";
+      ctx.fillRect(screenX, screenY, this.width, this.height);
+
+      // Animación de manos y pies (líneas)
+      const isWalking = Math.abs(this.vx) > 5 && this.onGround;
+      const baseSwingSpeed = isWalking ? 10 : 3;
+      const baseAmplitude = isWalking ? 6 : 2;
+      const swing = Math.sin(this.animTime * baseSwingSpeed) * baseAmplitude;
+
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = "#000000";
+
+      // Pies
+      const footY = screenY + this.height;
+      ctx.beginPath();
+      ctx.moveTo(screenX + 6, footY);
+      ctx.lineTo(screenX + 6 + swing, footY + 10);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(screenX + this.width - 6, footY);
+      ctx.lineTo(screenX + this.width - 6 - swing, footY + 10);
+      ctx.stroke();
+
+      // Manos
+      const handY = screenY + this.height / 2;
+      ctx.beginPath();
+      ctx.moveTo(screenX, handY);
+      ctx.lineTo(screenX - 10 - swing, handY + swing * 0.5);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(screenX + this.width, handY);
+      ctx.lineTo(screenX + this.width + 10 + swing, handY - swing * 0.5);
+      ctx.stroke();
+    }
+  }
+
+  class Z2DGame {
+    constructor(canvas) {
+      this.canvas = canvas;
+      this.ctx = canvas.getContext("2d");
+
+      this.cfg = z2dConfig;
+
+      // Ajustar tamaño interno del canvas
+      this.canvas.width = this.cfg.canvasWidth;
+      this.canvas.height = this.cfg.canvasHeight;
+
+      this.groundY = this.cfg.canvasHeight - this.cfg.groundHeight;
+
+      // RNG simple para estrellas (determinista)
+      let seed = 123456;
+      const rng = () => {
+        // LCG sencillo
+        seed = (seed * 1664525 + 1013904223) % 4294967296;
+        return seed / 4294967296;
+      };
+
+      this.starfield = new Z2DStarfield(this.cfg, rng);
+      this.player = new Z2DPlayer(this.cfg, this.groundY);
+
+      // Suelo visual
+      this.platforms = [];
+
+      // Plataforma de prueba: cuadrado 20px en el suelo
+      const obstacleSize = 20;
+      const obstacleX = 320; // posición en el mundo
+      const obstacleY = this.groundY - obstacleSize;
+      this.platforms.push(new Z2DPlatform(obstacleX, obstacleY, obstacleSize, obstacleSize));
+
+      this.lastTime = performance.now();
+      this.cameraX = 0;
+
+      this._loop = this._loop.bind(this);
+    }
+
+    start() {
+      requestAnimationFrame(this._loop);
+    }
+
+    _update(dt) {
+      // Gestión del salto
+      if (z2dKeys.jump && this.player.onGround && this.player.jumpPhase === "idle") {
+        this.player.startJump();
+      }
+
+      // Actualizar jugador
+      this.player.update(dt, this.platforms);
+
+      // Actualizar cámara para efecto parallax tipo "empieza en mitad"
+      this._updateCamera();
+    }
+
+    _updateCamera() {
+      const halfWidth = this.cfg.canvasWidth / 2;
+
+      // Regla típica: el jugador se mantiene en el centro hasta que se llega a los bordes del mundo
+      let targetCameraX = this.player.worldX - halfWidth + this.player.width / 2;
+
+      if (targetCameraX < 0) targetCameraX = 0;
+      if (targetCameraX > this.cfg.worldWidth - this.cfg.canvasWidth) {
+        targetCameraX = this.cfg.worldWidth - this.cfg.canvasWidth;
+      }
+
+      // Interpolación suave (podemos ajustarla más adelante)
+      const lerpFactor = 0.15;
+      this.cameraX = this.cameraX + (targetCameraX - this.cameraX) * lerpFactor;
+    }
+
+    _draw() {
+      const ctx = this.ctx;
+
+      // Fondo de estrellas con parallax
+      this.starfield.draw(ctx, this.cameraX);
+
+      // Suelo
+      ctx.fillStyle = "#1a1a1a";
+      ctx.fillRect(0, this.groundY, this.cfg.canvasWidth, this.cfg.canvasHeight - this.groundY);
+
+      // Plataformas (incluye el cuadrado de 20px)
+      for (const p of this.platforms) {
+        p.draw(ctx, this.cameraX);
+      }
+
+      // Jugador
+      this.player.draw(ctx, this.cameraX);
+    }
+
+    _loop(timestamp) {
+      const dt = Math.min((timestamp - this.lastTime) / 1000, 0.05);
+      this.lastTime = timestamp;
+
+      this._update(dt);
+      this._draw();
+
+      requestAnimationFrame(this._loop);
+    }
+  }
+
+  /* ====== INICIALIZAR JUEGO CUANDO EL DOM ESTÉ LISTO ====== */
+  function z2dStartGame() {
+    const canvas = document.getElementById("z2d-game-canvas");
+    if (!canvas) return;
+    const game = new Z2DGame(canvas);
+    game.start();
+  }
+
+  if (document.readyState === "complete" || document.readyState === "interactive") {
+    setTimeout(z2dStartGame, 0);
+  } else {
+    document.addEventListener("DOMContentLoaded", z2dStartGame);
+  }
+})();
+</script>
+
+</body>
+</html>
