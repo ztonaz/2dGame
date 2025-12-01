@@ -7,6 +7,110 @@
 <body>
 <div id="z2d-game-wrapper">
   <canvas id="z2d-game-canvas"></canvas>
+
+  <!-- OVERLAY: LOADING FUTURISTA -->
+  <div id="z2d-loading-overlay">
+    <div id="z2d-loading-inner">
+      <div id="z2d-loading-title">WELCOME TO Z2D UNIVERSE</div>
+      <div id="z2d-loading-bar-outer">
+        <div id="z2d-loading-bar-inner"></div>
+      </div>
+      <div id="z2d-loading-percent">0%</div>
+      <div id="z2d-loading-sub">Syncing stars &amp; quantum particles...</div>
+    </div>
+  </div>
+
+  <!-- OVERLAY: MENÚ PRINCIPAL -->
+  <div id="z2d-menu-overlay">
+    <div id="z2d-menu-panel">
+      <div id="z2d-menu-title">Z2D ADVENTURES</div>
+      <button class="z2d-menu-btn" data-action="story">Modo historia</button>
+      <button class="z2d-menu-btn" data-action="online">Aventuras Online</button>
+      <button class="z2d-menu-btn" data-action="create">Crear Aventura</button>
+      <button class="z2d-menu-btn" data-action="skins">Skins</button>
+      <button class="z2d-menu-btn" data-action="settings">Ajustes</button>
+      <button class="z2d-menu-btn" data-action="about">Sobre nosotros</button>
+      <div id="z2d-menu-footer">v0.1 · Proyecto en desarrollo</div>
+    </div>
+  </div>
+
+  <!-- OVERLAY: PAUSA EN MODO HISTORIA -->
+  <div id="z2d-pause-overlay">
+    <div id="z2d-pause-panel">
+      <div id="z2d-pause-title">Pausa</div>
+      <div id="z2d-pause-text">¿Quieres salir del modo juego?</div>
+      <div id="z2d-pause-buttons">
+        <button id="z2d-pause-yes">Sí, salir al menú</button>
+        <button id="z2d-pause-no">No, continuar</button>
+      </div>
+      <div id="z2d-pause-hint">Pulsa ESC para continuar también</div>
+    </div>
+  </div>
+
+  <!-- OVERLAY: SOBRE NOSOTROS -->
+  <div id="z2d-about-overlay">
+    <div id="z2d-about-panel">
+      <div id="z2d-about-title">Sobre nosotros</div>
+      <div id="z2d-about-text">
+        Z2D Adventures es un experimento indie nacido de la idea de mezclar<br>
+        <strong>juegos retro 2D</strong>, físicas raras y sistemas online modernos.<br><br>
+        Detrás del proyecto hay un solo desarrollador que, entre trabajo, café<br>
+        y noches sin dormir, va construyendo un pequeño universo jugable
+        pensado para crecer con la comunidad: más modos,
+        más aventuras creadas por usuarios y un personaje
+        que empieza siendo un simple cuadrado, pero puede acabar
+        siendo lo que tú imagines.<br><br>
+        Esta es solo la primera versión. El objetivo es convertir Z2D en un
+        lugar donde probar ideas locas de gameplay, compartir niveles
+        y, sobre todo, pasarlo bien un rato.
+      </div>
+      <button id="z2d-about-back">Volver al menú</button>
+    </div>
+  </div>
+
+  <!-- OVERLAY: CREAR AVENTURA (BOCETO) -->
+  <div id="z2d-create-overlay">
+    <div id="z2d-create-panel">
+      <div id="z2d-create-title">Crear aventura (boceto)</div>
+
+      <label class="z2d-create-label">
+        Nombre de la aventura
+        <input id="z2d-create-name" type="text" placeholder="Ej: El corredor de estrellas">
+      </label>
+
+      <label class="z2d-create-label">
+        Tamaño del mapa
+        <select id="z2d-create-size">
+          <option value="small">Pequeño (rápido)</option>
+          <option value="medium" selected>Medio (recomendado)</option>
+          <option value="large">Grande (más exploración)</option>
+        </select>
+      </label>
+
+      <label class="z2d-create-label">
+        Dificultad base
+        <input id="z2d-create-difficulty" type="range" min="1" max="5" value="2">
+        <span id="z2d-create-difficulty-label">Normal</span>
+      </label>
+
+      <div id="z2d-create-buttons">
+        <button id="z2d-create-save">Guardar boceto (placeholder)</button>
+        <button id="z2d-create-back">Volver al menú</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- OVERLAY: ELECTROCUCIÓN / GAME OVER -->
+  <div id="z2d-electro-overlay">
+    <div id="z2d-electro-panel">
+      <div id="z2d-electro-text">me electrocuteee!!</div>
+      <div id="z2d-electro-buttons">
+        <button id="z2d-electro-restart">Empieza de nuevo</button>
+        <button id="z2d-electro-menu">Ir al menú</button>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <style>
@@ -18,6 +122,7 @@
     margin: 0 auto;
     padding: 0;
     box-sizing: border-box;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   }
 
   #z2d-game-canvas {
@@ -27,6 +132,418 @@
     background: #02040a;
     border: 2px solid #444;
     box-sizing: border-box;
+  }
+
+  /* ====== LOADING OVERLAY ====== */
+  #z2d-loading-overlay {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 20% 20%, #1a8cff 0, #02040a 50%, #000000 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 30;
+    overflow: hidden;
+    opacity: 1;
+    transition: opacity 0.4s ease;
+  }
+
+  #z2d-loading-overlay.z2d-hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  #z2d-loading-inner {
+    text-align: center;
+    color: #e0f6ff;
+    padding: 20px 30px;
+    border-radius: 16px;
+    background: rgba(5, 10, 25, 0.75);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 0 25px rgba(0, 200, 255, 0.25);
+    min-width: 260px;
+  }
+
+  #z2d-loading-title {
+    font-size: 16px;
+    letter-spacing: 0.18em;
+    margin-bottom: 18px;
+    color: #9fdcff;
+  }
+
+  #z2d-loading-bar-outer {
+    width: 100%;
+    height: 10px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  #z2d-loading-bar-inner {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, #00ffd5, #00a2ff);
+    box-shadow: 0 0 12px rgba(0, 255, 200, 0.9);
+    border-radius: 999px;
+    transition: width 0.08s linear;
+  }
+
+  #z2d-loading-percent {
+    margin-top: 10px;
+    font-size: 14px;
+    letter-spacing: 0.12em;
+  }
+
+  #z2d-loading-sub {
+    margin-top: 12px;
+    font-size: 11px;
+    opacity: 0.7;
+  }
+
+  #z2d-loading-overlay::before,
+  #z2d-loading-overlay::after {
+    content: "";
+    position: absolute;
+    border-radius: 999px;
+    filter: blur(25px);
+    opacity: 0.25;
+    animation: z2d-pulse-glow 6s infinite alternate;
+  }
+
+  #z2d-loading-overlay::before {
+    width: 260px;
+    height: 260px;
+    background: #00fff2;
+    top: 10%;
+    left: 5%;
+  }
+
+  #z2d-loading-overlay::after {
+    width: 320px;
+    height: 320px;
+    background: #0055ff;
+    bottom: -10%;
+    right: -5%;
+  }
+
+  @keyframes z2d-pulse-glow {
+    from { transform: scale(1); opacity: 0.18; }
+    to   { transform: scale(1.2); opacity: 0.32; }
+  }
+
+  /* ====== MENÚ PRINCIPAL ====== */
+  #z2d-menu-overlay {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 80% 0%, #21326b 0, #050814 40%, #000000 100%);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+  }
+
+  #z2d-menu-overlay.z2d-visible {
+    display: flex;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  #z2d-menu-panel {
+    background: rgba(4, 8, 24, 0.9);
+    border-radius: 18px;
+    padding: 24px 26px;
+    box-shadow: 0 0 28px rgba(0, 0, 0, 0.55);
+    border: 1px solid rgba(0, 255, 230, 0.25);
+    min-width: 260px;
+    max-width: 320px;
+  }
+
+  #z2d-menu-title {
+    font-size: 20px;
+    text-align: center;
+    color: #dffcff;
+    letter-spacing: 0.16em;
+    margin-bottom: 18px;
+  }
+
+  .z2d-menu-btn {
+    width: 100%;
+    padding: 8px 10px;
+    margin: 5px 0;
+    background: linear-gradient(90deg, #07111f, #0c2035);
+    border: 1px solid rgba(0, 255, 200, 0.4);
+    border-radius: 999px;
+    color: #e3faff;
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.12s ease;
+  }
+
+  .z2d-menu-btn:hover {
+    box-shadow: 0 0 14px rgba(0, 255, 200, 0.45);
+    transform: translateY(-1px);
+    background: linear-gradient(90deg, #021019, #083b41);
+  }
+
+  .z2d-menu-btn:active {
+    transform: translateY(0px) scale(0.99);
+    box-shadow: 0 0 6px rgba(0, 255, 200, 0.3);
+  }
+
+  #z2d-menu-footer {
+    margin-top: 12px;
+    font-size: 10px;
+    text-align: center;
+    color: #8aa3c0;
+    opacity: 0.9;
+  }
+
+  /* ====== PAUSE OVERLAY ====== */
+  #z2d-pause-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 25;
+  }
+
+  #z2d-pause-panel {
+    background: rgba(5, 10, 30, 0.95);
+    border-radius: 14px;
+    padding: 18px 22px;
+    color: #e8f8ff;
+    min-width: 240px;
+    box-shadow: 0 0 20px rgba(0, 255, 200, 0.3);
+    border: 1px solid rgba(0, 255, 200, 0.4);
+    text-align: center;
+  }
+
+  #z2d-pause-title {
+    font-size: 18px;
+    margin-bottom: 10px;
+    letter-spacing: 0.12em;
+  }
+
+  #z2d-pause-text {
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+
+  #z2d-pause-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 8px;
+  }
+
+  #z2d-pause-buttons button {
+    padding: 6px 10px;
+    font-size: 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(0, 255, 200, 0.5);
+    background: #061525;
+    color: #e3faff;
+    cursor: pointer;
+  }
+
+  #z2d-pause-buttons button:hover {
+    background: #0c2d42;
+  }
+
+  #z2d-pause-hint {
+    font-size: 10px;
+    opacity: 0.7;
+  }
+
+  /* ====== ABOUT OVERLAY ====== */
+  #z2d-about-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 26;
+  }
+
+  #z2d-about-panel {
+    background: rgba(4, 10, 30, 0.96);
+    border-radius: 16px;
+    padding: 20px 24px;
+    max-width: 420px;
+    color: #e9f6ff;
+    border: 1px solid rgba(0, 255, 200, 0.4);
+    box-shadow: 0 0 24px rgba(0, 0, 0, 0.7);
+    font-size: 13px;
+  }
+
+  #z2d-about-title {
+    font-size: 17px;
+    margin-bottom: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-align: center;
+  }
+
+  #z2d-about-text {
+    margin-bottom: 14px;
+    line-height: 1.5;
+  }
+
+  #z2d-about-back {
+    display: block;
+    margin: 0 auto;
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(0, 255, 200, 0.6);
+    background: #061525;
+    color: #e3faff;
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  #z2d-about-back:hover {
+    background: #0c2d42;
+  }
+
+  /* ====== CREATE ADVENTURE OVERLAY ====== */
+  #z2d-create-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 26;
+  }
+
+  #z2d-create-panel {
+    background: rgba(7, 14, 32, 0.97);
+    border-radius: 16px;
+    padding: 20px 24px;
+    max-width: 420px;
+    color: #e9f6ff;
+    border: 1px solid rgba(0, 255, 200, 0.4);
+    box-shadow: 0 0 24px rgba(0, 0, 0, 0.7);
+    font-size: 13px;
+  }
+
+  #z2d-create-title {
+    font-size: 17px;
+    margin-bottom: 14px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-align: center;
+  }
+
+  .z2d-create-label {
+    display: flex;
+    flex-direction: column;
+    font-size: 12px;
+    margin-bottom: 10px;
+    gap: 4px;
+  }
+
+  .z2d-create-label input,
+  .z2d-create-label select {
+    padding: 5px 7px;
+    border-radius: 6px;
+    border: 1px solid #294a66;
+    background: #020712;
+    color: #e9f6ff;
+    font-size: 12px;
+    outline: none;
+  }
+
+  .z2d-create-label input:focus,
+  .z2d-create-label select:focus {
+    border-color: #00ffd5;
+  }
+
+  #z2d-create-difficulty {
+    width: 100%;
+  }
+
+  #z2d-create-difficulty-label {
+    font-size: 11px;
+    opacity: 0.8;
+  }
+
+  #z2d-create-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 12px;
+  }
+
+  #z2d-create-buttons button {
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(0, 255, 200, 0.6);
+    background: #061525;
+    color: #e3faff;
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  #z2d-create-buttons button:hover {
+    background: #0c2d42;
+  }
+
+  /* ====== ELECTRO OVERLAY (GAME OVER) ====== */
+  #z2d-electro-overlay {
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 27;
+    background: rgba(0, 0, 0, 0.55);
+  }
+
+  #z2d-electro-panel {
+    background: rgba(5, 12, 30, 0.96);
+    padding: 18px 22px;
+    border-radius: 16px;
+    color: #e8f8ff;
+    border: 1px solid rgba(0, 255, 255, 0.6);
+    box-shadow: 0 0 22px rgba(0, 255, 255, 0.5);
+    text-align: center;
+    min-width: 260px;
+  }
+
+  #z2d-electro-text {
+    font-size: 16px;
+    margin-bottom: 12px;
+    text-shadow: 0 0 10px #00ffff;
+  }
+
+  #z2d-electro-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+  }
+
+  #z2d-electro-buttons button {
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(0, 255, 255, 0.8);
+    background: #061525;
+    color: #e3faff;
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  #z2d-electro-buttons button:hover {
+    background: #0c2d42;
   }
 </style>
 
@@ -38,37 +555,106 @@
   const z2dConfig = {
     canvasWidth: 900,
     canvasHeight: 450,
-    worldWidth: 2400,          // Mundo horizontal más grande que la pantalla
-    groundHeight: 60,          // Altura del "suelo" desde la parte inferior
-    backgroundStarCount: 120,  // Nº de estrellas
-    jumpHeight: 40,            // Altura del salto en px
-    jumpUpDuration: 0.20,      // Segundos en subir
-    jumpDownDuration: 0.40,    // Segundos en bajar (base)
-    jumpHoldFactor: 2.5,       // Multiplicador de bajada si mantienes espacio
-    playerSpeed: 180,          // px/segundo al andar
-    playerRunSpeed: 280        // px/segundo al correr (tecla A)
+    worldWidth: 2400,
+    groundHeight: 60,
+    backgroundStarCount: 120,
+
+    // Salto
+    jumpHeight: 80,
+    jumpUpDuration: 0.20,
+    jumpDownDuration: 0.40,
+    // Espacio mantenido → caída más lenta
+    jumpHoldFactor: 3.5,
+
+    // Movimiento
+    playerSpeed: 180,
+    playerRunSpeed: 360,   // sprint
+
+    // Disparo
+    bulletSpeed: 500,
+    bulletRate: 6,         // 6 balas/seg
+    bulletsPerRecoil: 5,
+    recoilKickSpeed: 260,
+
+    // Knockback plataformas
+    platformKnockbackSpeed: 140,
+
+    // Terremoto al morir
+    quakeDuration: 0.6,
+    quakeMagnitude: 12
   };
 
-  /* ====== ENTRADAS DEL TECLADO (AISLADAS) ====== */
+  /* ====== INPUT GLOBAL ====== */
   const z2dKeys = {
     left: false,
     right: false,
+    up: false,
+    down: false,
     jump: false,
-    run: false
+    run: false,
+    fire: false
   };
 
+  function z2dResetKeys() {
+    z2dKeys.left  = false;
+    z2dKeys.right = false;
+    z2dKeys.up    = false;
+    z2dKeys.down  = false;
+    z2dKeys.jump  = false;
+    z2dKeys.run   = false;
+    z2dKeys.fire  = false;
+  }
+
+  let z2dEscapeHandler = null;
+
   window.addEventListener("keydown", function (e) {
-    if (e.code === "ArrowLeft") { z2dKeys.left = true; }
+    const handledCodes = [
+      "ArrowLeft", "ArrowRight", "ArrowDown", "ArrowUp",
+      "Space", "KeyA", "ControlLeft", "ControlRight"
+    ];
+    if (handledCodes.includes(e.code)) {
+      e.preventDefault();
+    }
+
+    if (e.code === "ArrowLeft")  { z2dKeys.left = true; }
     if (e.code === "ArrowRight") { z2dKeys.right = true; }
-    if (e.code === "Space") { z2dKeys.jump = true; }
-    if (e.code === "KeyA") { z2dKeys.run = true; }
+    if (e.code === "ArrowDown")  { z2dKeys.down = true; }
+    if (e.code === "ArrowUp")    { z2dKeys.up = true; }
+    if (e.code === "Space")      { z2dKeys.jump = true; }
+    if (e.code === "KeyA")       { z2dKeys.run = true; }
+    if (e.code === "ControlLeft" || e.code === "ControlRight") {
+      z2dKeys.fire = true;
+    }
+
+    if (e.code === "Escape" && typeof z2dEscapeHandler === "function") {
+      e.preventDefault();
+      z2dEscapeHandler();
+    }
   });
 
   window.addEventListener("keyup", function (e) {
-    if (e.code === "ArrowLeft") { z2dKeys.left = false; }
+    if (e.code === "ArrowLeft")  { z2dKeys.left = false; }
     if (e.code === "ArrowRight") { z2dKeys.right = false; }
-    if (e.code === "Space") { z2dKeys.jump = false; }
-    if (e.code === "KeyA") { z2dKeys.run = false; }
+    if (e.code === "ArrowDown")  { z2dKeys.down = false; }
+    if (e.code === "ArrowUp")    { z2dKeys.up = false; }
+    if (e.code === "Space")      { z2dKeys.jump = false; }
+    if (e.code === "KeyA")       { z2dKeys.run = false; }
+    if (e.code === "ControlLeft" || e.code === "ControlRight") {
+      z2dKeys.fire = false;
+    }
+  });
+
+  window.addEventListener("mousedown", function (e) {
+    if (e.button === 0) { z2dKeys.fire = true; }
+  });
+
+  window.addEventListener("mouseup", function (e) {
+    if (e.button === 0) { z2dKeys.fire = false; }
+  });
+
+  window.addEventListener("blur", z2dResetKeys);
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) z2dResetKeys();
   });
 
   /* ====== CLASES DEL JUEGO ====== */
@@ -80,7 +666,6 @@
       this.stars = [];
       this._createStars();
     }
-
     _createStars() {
       this.stars.length = 0;
       for (let i = 0; i < this.cfg.backgroundStarCount; i++) {
@@ -88,23 +673,19 @@
           x: this.rng() * this.cfg.worldWidth,
           y: this.rng() * this.cfg.canvasHeight,
           size: 1 + this.rng() * 2,
-          factor: 0.2 + this.rng() * 0.6  // para que se muevan distinto (parallax)
+          factor: 0.2 + this.rng() * 0.6
         });
       }
     }
-
     draw(ctx, cameraX) {
       ctx.fillStyle = "#02040a";
       ctx.fillRect(0, 0, this.cfg.canvasWidth, this.cfg.canvasHeight);
-
       ctx.fillStyle = "#ffffff";
       for (const star of this.stars) {
         const screenX = star.x - cameraX * star.factor;
-        // Reposicionar si se sale demasiado por los lados
         let sx = screenX;
         if (sx < -50) sx += this.cfg.worldWidth + 100;
         if (sx > this.cfg.canvasWidth + 50) sx -= this.cfg.worldWidth + 100;
-
         ctx.beginPath();
         ctx.arc(sx, star.y, star.size * 0.5, 0, Math.PI * 2);
         ctx.fill();
@@ -118,8 +699,13 @@
       this.y = y;
       this.w = w;
       this.h = h;
+      this.vx = 0;
     }
-
+    update(dt) {
+      this.x += this.vx * dt;
+      this.vx *= Math.pow(0.85, dt * 60);
+      if (Math.abs(this.vx) < 2) this.vx = 0;
+    }
     draw(ctx, cameraX) {
       const sx = this.x - cameraX;
       ctx.fillStyle = "#33ffaa";
@@ -127,135 +713,202 @@
     }
   }
 
+  class Z2DBullet {
+    constructor(cfg, x, y, vx, vy) {
+      this.cfg = cfg;
+      this.x = x;
+      this.y = y;
+      this.vx = vx;
+      this.vy = vy;
+      this.alive = true;
+    }
+    update(dt) {
+      this.x += this.vx * dt;
+      this.y += this.vy * dt;
+      if (this.x < -50 || this.x > this.cfg.worldWidth + 50 ||
+          this.y < -200 || this.y > this.cfg.canvasHeight + 200) {
+        this.alive = false;
+      }
+    }
+    draw(ctx, cameraX) {
+      const sx = this.x - cameraX;
+      const sy = this.y;
+
+      const len = 14;
+      const speed = Math.hypot(this.vx, this.vy) || 1;
+      const dx = (this.vx / speed) * len;
+      const dy = (this.vy / speed) * len;
+
+      ctx.save();
+      ctx.strokeStyle = "rgba(255,0,0,0.9)";
+      ctx.lineWidth = 2;
+      ctx.shadowColor = "rgba(255,0,0,1)";
+      ctx.shadowBlur = 12;
+      ctx.beginPath();
+      ctx.moveTo(sx - dx * 0.3, sy - dy * 0.3);
+      ctx.lineTo(sx + dx * 0.7, sy + dy * 0.7);
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  class Z2DExplosion {
+    constructor(x, y, big = false) {
+      this.x = x;
+      this.y = y;
+      this.age = 0;
+      this.life = big ? 0.7 : 0.15;
+      this.big = big;
+      this.dead = false;
+    }
+    update(dt) {
+      this.age += dt;
+      if (this.age >= this.life) this.dead = true;
+    }
+    draw(ctx, cameraX) {
+      const t = this.age / this.life;
+      const alpha = Math.max(0, 1 - t);
+      const baseRadius = this.big ? 26 : 6;
+      const radius = baseRadius + (this.big ? 18 : 4) * (1 - t);
+      const sx = this.x - cameraX;
+      const sy = this.y;
+      ctx.save();
+      const color = this.big ? "255,255,255" : "255,165,0";
+      ctx.fillStyle = `rgba(${color},${alpha})`;
+      ctx.shadowColor = this.big ? "rgba(0, 255, 255, 1)" : "rgba(255,140,0,1)";
+      ctx.shadowBlur = this.big ? 20 : 10;
+      ctx.beginPath();
+      ctx.arc(sx, sy, radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  /* ====== LLUVIA LOCAL (x de 1000 a 1300) ====== */
+  class Z2DRainSystem {
+    constructor(cfg, groundY) {
+      this.cfg = cfg;
+      this.groundY = groundY;
+      this.startX = 1000;
+      this.endX = 1300; // 300px de ancho
+      this.drops = [];
+      this._createDrops();
+    }
+
+    _createDrops() {
+      this.drops.length = 0;
+      const count = 120;
+      for (let i = 0; i < count; i++) {
+        this.drops.push({
+          x: this.startX + Math.random() * (this.endX - this.startX),
+          y: Math.random() * this.cfg.canvasHeight,
+          speed: 240 + Math.random() * 120
+        });
+      }
+    }
+
+    update(dt) {
+      for (const d of this.drops) {
+        d.y += d.speed * dt;
+        if (d.y > this.groundY) {
+          d.y = -10 - Math.random() * 100;
+          d.x = this.startX + Math.random() * (this.endX - this.startX);
+        }
+      }
+    }
+
+    draw(ctx, cameraX) {
+      ctx.save();
+      ctx.strokeStyle = "rgba(130,210,255,0.85)";
+      ctx.lineWidth = 1;
+      ctx.shadowColor = "rgba(140,220,255,1)";
+      ctx.shadowBlur = 10;
+
+      for (const d of this.drops) {
+        const sx = d.x - cameraX;
+        if (sx < 0 || sx > this.cfg.canvasWidth) continue;
+        const sy = d.y;
+        const len = 10;
+        ctx.beginPath();
+        ctx.moveTo(sx, sy);
+        ctx.lineTo(sx + 2, sy + len);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+  }
+
   class Z2DPlayer {
     constructor(cfg, groundY) {
       this.cfg = cfg;
       this.width = 32;
-      this.height = 50;
+      this.baseHeight = 50;
+      this.height = this.baseHeight;
+      this.crouchDelta = 10;
+      this.isCrouching = false;
+      this.isDamaged = false;
+
       this.worldX = 80;
       this.y = groundY - this.height;
       this.baseGroundY = groundY;
 
       this.vx = 0;
+      this.vy = 0;
+      this.recoilVelX = 0;
+
       this.onGround = true;
-      this.currentGroundY = groundY;
+      this.facing = 1;
 
-      // Estado de salto paramétrico
-      this.jumpPhase = "idle";   // idle | up | down
-      this.jumpTimer = 0;
-      this.jumpStartY = this.y;
+      this.gUp = 2 * cfg.jumpHeight / (cfg.jumpUpDuration * cfg.jumpUpDuration);
+      this.jumpInitialVelocity = this.gUp * cfg.jumpUpDuration;
+      this.gDownBase = 2 * cfg.jumpHeight / (cfg.jumpDownDuration * cfg.jumpDownDuration);
 
-      // Animación
       this.animTime = 0;
+
+      // Paracaídas (0-1)
+      this.parachuteT = 0;
     }
 
     startJump() {
       if (!this.onGround) return;
-
       this.onGround = false;
-      this.jumpPhase = "up";
-      this.jumpTimer = 0;
-      this.jumpStartY = this.y;
+      this.vy = -this.jumpInitialVelocity;
+      if (this.isCrouching) this._setCrouch(false);
     }
 
-    update(dt, platforms) {
-      this.animTime += dt;
-
-      // Movimiento horizontal con correr (tecla A)
-      this.vx = 0;
-      const speed = z2dKeys.run ? this.cfg.playerRunSpeed : this.cfg.playerSpeed;
-      if (z2dKeys.left) this.vx -= speed;
-      if (z2dKeys.right) this.vx += speed;
-
-      this.worldX += this.vx * dt;
-      if (this.worldX < 0) this.worldX = 0;
-      if (this.worldX > this.cfg.worldWidth - this.width) {
-        this.worldX = this.cfg.worldWidth - this.width;
+    _setCrouch(shouldCrouch) {
+      if (shouldCrouch && !this.isCrouching) {
+        this.isCrouching = true;
+        this.height = this.baseHeight - this.crouchDelta;
+        this.y += this.crouchDelta;
+      } else if (!shouldCrouch && this.isCrouching) {
+        this.isCrouching = false;
+        this.height = this.baseHeight;
+        this.y -= this.crouchDelta;
       }
-
-      // Salto paramétrico (sin física real, más fácil de controlar)
-      const jumpHeight = this.cfg.jumpHeight;
-
-      if (this.jumpPhase === "up") {
-        this.jumpTimer += dt;
-        const t = Math.min(this.jumpTimer / this.cfg.jumpUpDuration, 1);
-        this.y = this.currentGroundY - this.height - jumpHeight * t;
-        if (t >= 1) {
-          this.jumpPhase = "down";
-          this.jumpTimer = 0;
-        }
-      } else if (this.jumpPhase === "down") {
-        this.jumpTimer += dt;
-        const baseDown = this.cfg.jumpDownDuration;
-        const factor = z2dKeys.jump ? this.cfg.jumpHoldFactor : 1;
-        const effectiveDownDuration = baseDown * factor;
-        const t = Math.min(this.jumpTimer / effectiveDownDuration, 1);
-        this.y = (this.currentGroundY - this.height - jumpHeight) + jumpHeight * t;
-        if (t >= 1) {
-          this.jumpPhase = "idle";
-          this.onGround = true;
-          this.y = this.currentGroundY - this.height;
-        }
-      }
-
-      // Si no está en salto, “gravedad” simple por si se cae de una plataforma
-      if (this.jumpPhase === "idle" && !this.onGround) {
-        this.y += 150 * dt; // caída simple
-      }
-
-      // Colisión vertical con plataformas (solo desde arriba, tipo suelo)
-      this._checkVerticalCollisions(platforms);
-
-      // Colisión lateral con plataformas (para no atravesar el cuadrado de 20px)
-      this._checkHorizontalCollisions(platforms);
     }
 
-    _checkVerticalCollisions(platforms) {
-      // Base: suelo global
-      let groundY = this.baseGroundY;
+    _checkStillOnGround(platforms) {
+      if (!this.onGround) return;
+      const epsilon = 0.5;
+      const playerBottom = this.y + this.height;
+      const playerLeft = this.worldX;
+      const playerRight = this.worldX + this.width;
+      let hasSupport = false;
+
+      if (Math.abs(playerBottom - this.baseGroundY) <= epsilon) hasSupport = true;
 
       for (const p of platforms) {
-        const playerBottom = this.y + this.height;
-        const playerRight = this.worldX + this.width;
-        const playerLeft = this.worldX;
-
         const platTop = p.y;
-        const platBottom = p.y + p.h;
         const platLeft = p.x;
         const platRight = p.x + p.w;
-
         const horizontallyOver = playerRight > platLeft && playerLeft < platRight;
-
-        // Revisar si está cayendo sobre la plataforma
-        if (horizontallyOver && playerBottom <= platTop + 10 && playerBottom >= platTop - 25) {
-          // Está en zona de caer encima
-          if (platTop < groundY) {
-            groundY = platTop;
-          }
-        }
-
-        // Bloqueo desde abajo (por si acaso)
-        const playerTop = this.y;
-        if (horizontallyOver && playerTop <= platBottom && playerTop > platTop) {
-          // Golpea desde abajo: lo empujamos un poco hacia abajo
-          this.y = platBottom + 1;
+        if (horizontallyOver && Math.abs(playerBottom - platTop) <= epsilon) {
+          hasSupport = true;
+          break;
         }
       }
-
-      // Actualizar suelo actual
-      this.currentGroundY = groundY;
-
-      const playerBottomNow = this.y + this.height;
-      if (playerBottomNow >= this.currentGroundY) {
-        this.y = this.currentGroundY - this.height;
-        this.onGround = true;
-        if (this.jumpPhase !== "idle") {
-          this.jumpPhase = "idle";
-          this.jumpTimer = 0;
-        }
-      } else {
-        this.onGround = false;
-      }
+      if (!hasSupport) this.onGround = false;
     }
 
     _checkHorizontalCollisions(platforms) {
@@ -271,44 +924,225 @@
         const platBottom = p.y + p.h;
 
         const verticallyOverlaps = playerBottom > platTop && playerTop < platBottom;
-
         if (!verticallyOverlaps) continue;
 
-        // Movimiento hacia la derecha: choca contra lado izquierdo de la plataforma
-        if (this.vx > 0 && playerRight > platLeft && playerLeft < platLeft) {
+        const totalVx = this.vx + this.recoilVelX;
+
+        if (totalVx > 0 && playerRight > platLeft && playerLeft < platLeft) {
           this.worldX = platLeft - this.width;
         }
-
-        // Movimiento hacia la izquierda: choca contra lado derecho de la plataforma
-        if (this.vx < 0 && playerLeft < platRight && playerRight > platRight) {
+        if (totalVx < 0 && playerLeft < platRight && playerRight > platRight) {
           this.worldX = platRight;
         }
       }
+    }
+
+    _resolveVerticalCollisions(platforms, prevY) {
+      let landed = false;
+
+      const playerBottomPrev = prevY + this.height;
+      const playerBottomNow = this.y + this.height;
+      const playerLeft = this.worldX;
+      const playerRight = this.worldX + this.width;
+
+      for (const p of platforms) {
+        const platTop = p.y;
+        const platLeft = p.x;
+        const platRight = p.x + p.w;
+        const horizontallyOver = playerRight > platLeft && playerLeft < platRight;
+        if (!horizontallyOver) continue;
+
+        if (this.vy >= 0 && playerBottomPrev <= platTop && playerBottomNow >= platTop) {
+          this.y = platTop - this.height;
+          this.vy = 0;
+          this.onGround = true;
+          landed = true;
+        }
+      }
+
+      const groundY = this.baseGroundY;
+      if (this.vy >= 0 && !landed) {
+        if (playerBottomPrev <= groundY && playerBottomNow >= groundY) {
+          this.y = groundY - this.height;
+          this.vy = 0;
+          this.onGround = true;
+          landed = true;
+        }
+      }
+
+      if (!landed) {
+        if (this.y + this.height > groundY) {
+          this.y = groundY - this.height;
+          this.vy = 0;
+          this.onGround = true;
+        }
+      }
+    }
+
+    update(dt, platforms) {
+      this.animTime += dt;
+
+      this._checkStillOnGround(platforms);
+
+      if (this.onGround && z2dKeys.down) this._setCrouch(true);
+      else this._setCrouch(false);
+
+      const speed = z2dKeys.run ? this.cfg.playerRunSpeed : this.cfg.playerSpeed;
+      this.vx = 0;
+      if (z2dKeys.left)  { this.vx -= speed; this.facing = -1; }
+      if (z2dKeys.right) { this.vx += speed; this.facing = 1; }
+
+      let totalVx = this.vx + this.recoilVelX;
+      this.worldX += totalVx * dt;
+
+      if (this.worldX < 0) this.worldX = 0;
+      if (this.worldX > this.cfg.worldWidth - this.width) {
+        this.worldX = this.cfg.worldWidth - this.width;
+      }
+
+      this._checkHorizontalCollisions(platforms);
+
+      this.recoilVelX *= Math.pow(0.85, dt * 60);
+      if (Math.abs(this.recoilVelX) < 5) this.recoilVelX = 0;
+
+      if (z2dKeys.jump && this.onGround) this.startJump();
+
+      const prevY = this.y;
+      if (!this.onGround) {
+        if (this.vy < 0) {
+          this.vy += this.gUp * dt;
+        } else {
+          let gDown = this.gDownBase;
+          if (z2dKeys.jump) gDown = gDown / this.cfg.jumpHoldFactor;
+          this.vy += gDown * dt;
+        }
+        this.y += this.vy * dt;
+      }
+
+      this._resolveVerticalCollisions(platforms, prevY);
+
+      // Paracaídas suave
+      const parachuteActive = (!this.onGround && this.vy > 0 && z2dKeys.jump);
+      const target = parachuteActive ? 1 : 0;
+      const speedT = 8;
+      this.parachuteT += (target - this.parachuteT) * Math.min(1, speedT * dt);
+      if (this.parachuteT < 0.001) this.parachuteT = 0;
+      if (this.parachuteT > 0.999) this.parachuteT = 1;
     }
 
     draw(ctx, cameraX) {
       const screenX = this.worldX - cameraX;
       const screenY = this.y;
 
-      // Cuerpo (cuadrado) con color medio transparente que luce
-      ctx.fillStyle = "rgba(0, 255, 200, 0.6)";
+      // Cuerpo base (dañado o normal)
+      if (this.isDamaged) {
+        ctx.fillStyle = "rgba(60,10,10,0.75)";
+      } else {
+        ctx.fillStyle = "rgba(0, 255, 200, 0.45)";
+      }
       ctx.fillRect(screenX, screenY, this.width, this.height);
 
-      // Pequeño borde para que destaque
-      ctx.strokeStyle = "rgba(0, 255, 255, 0.9)";
+      // Borde con glow (diferente si dañado)
+      ctx.save();
+      if (this.isDamaged) {
+        ctx.strokeStyle = "rgba(255, 80, 80, 0.9)";
+        ctx.shadowColor = "rgba(255, 80, 80, 1)";
+      } else {
+        ctx.strokeStyle = "rgba(0, 255, 255, 0.9)";
+        ctx.shadowColor = "rgba(0, 255, 255, 1)";
+      }
       ctx.lineWidth = 2;
+      ctx.shadowBlur = 10;
       ctx.strokeRect(screenX, screenY, this.width, this.height);
+      ctx.restore();
 
-      // Animación de manos y pies (líneas blancas)
+      // Grietas rojas si está dañado
+      if (this.isDamaged) {
+        ctx.save();
+        ctx.strokeStyle = "rgba(255,50,50,0.9)";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(screenX + 4, screenY + 8);
+        ctx.lineTo(screenX + 14, screenY + 18);
+        ctx.lineTo(screenX + 8, screenY + 30);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(screenX + 20, screenY + 6);
+        ctx.lineTo(screenX + 26, screenY + 18);
+        ctx.lineTo(screenX + 22, screenY + 32);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // Electricidad que recorre el cuadrado (rápida y con jitter)
+      ctx.save();
+      const per = 2 * (this.width + this.height);
+      const speed = 260;
+      let s = (this.animTime * speed) % per;
+      if (s < 0) s += per;
+      const segLen = per * 0.35;
+
+      function pointOnPerimeter(dist) {
+        let d = dist % per;
+        if (d < 0) d += per;
+        const w = this.width;
+        const h = this.height;
+        const x0 = screenX;
+        const y0 = screenY;
+
+        if (d <= w) {
+          return { x: x0 + d, y: y0 };
+        }
+        d -= w;
+        if (d <= h) {
+          return { x: x0 + w, y: y0 + d };
+        }
+        d -= h;
+        if (d <= w) {
+          return { x: x0 + w - d, y: y0 + h };
+        }
+        d -= w;
+        return { x: x0, y: y0 + h - d };
+      }
+
+      ctx.strokeStyle = this.isDamaged ? "rgba(255, 120, 120, 0.95)" : "rgba(0, 255, 255, 0.95)";
+      ctx.lineWidth = 2;
+      ctx.shadowColor = this.isDamaged ? "rgba(255, 120, 120, 1)" : "rgba(0, 255, 255, 1)";
+      ctx.shadowBlur = 16;
+
+      ctx.beginPath();
+      const steps = 22;
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        const d = s + segLen * t;
+        const basePt = pointOnPerimeter.call(this, d);
+
+        const jitterStrength = 2.0;
+        const jx = Math.sin(this.animTime * 40 + i * 7.31) * jitterStrength;
+        const jy = Math.cos(this.animTime * 37 + i * 5.89) * jitterStrength * 0.7;
+
+        const px = basePt.x + jx;
+        const py = basePt.y + jy;
+
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+      ctx.restore();
+
+      // Animación manos/pies
       const isWalking = Math.abs(this.vx) > 5 && this.onGround;
       const baseSwingSpeed = isWalking ? 10 : 3;
-      const baseAmplitude = isWalking ? 6 : 2;
+      let baseAmplitude;
+      if (this.isCrouching) baseAmplitude = 3;
+      else baseAmplitude = isWalking ? 6 : 2;
+
       const swing = Math.sin(this.animTime * baseSwingSpeed) * baseAmplitude;
 
       ctx.lineWidth = 2;
       ctx.strokeStyle = "#ffffff";
 
-      // Pies
       const footY = screenY + this.height;
       ctx.beginPath();
       ctx.moveTo(screenX + 6, footY);
@@ -320,7 +1154,6 @@
       ctx.lineTo(screenX + this.width - 6 - swing, footY + 10);
       ctx.stroke();
 
-      // Manos
       const handY = screenY + this.height / 2;
       ctx.beginPath();
       ctx.moveTo(screenX, handY);
@@ -331,6 +1164,42 @@
       ctx.moveTo(screenX + this.width, handY);
       ctx.lineTo(screenX + this.width + 10 + swing, handY - swing * 0.5);
       ctx.stroke();
+
+      // PARACAÍDAS (solo si parachuteT > 0)
+      if (this.parachuteT > 0.01) {
+        ctx.save();
+        const t = this.parachuteT;
+        const centerX = screenX + this.width / 2;
+        const topY = screenY - 10 - 14 * t;
+        const radius = 24 + 6 * t;
+        const alpha = 0.85 * t;
+
+        ctx.fillStyle = `rgba(200,240,255,${alpha})`;
+        ctx.beginPath();
+        ctx.arc(centerX, topY, radius, Math.PI, 2 * Math.PI);
+        ctx.fill();
+
+        ctx.strokeStyle = `rgba(120,210,255,${alpha})`;
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.arc(centerX, topY, radius, Math.PI, 2 * Math.PI);
+        ctx.stroke();
+
+        const ribs = 4;
+        ctx.strokeStyle = `rgba(150,220,255,${alpha})`;
+        for (let i = 0; i <= ribs; i++) {
+          const f = -1 + 2 * (i / ribs);
+          const px = centerX + f * radius;
+          const py = topY;
+          ctx.beginPath();
+          ctx.moveTo(px, py);
+          const bodyTop = screenY + 5;
+          ctx.lineTo(centerX + f * (this.width / 4), bodyTop);
+          ctx.stroke();
+        }
+
+        ctx.restore();
+      }
     }
   }
 
@@ -338,19 +1207,15 @@
     constructor(canvas) {
       this.canvas = canvas;
       this.ctx = canvas.getContext("2d");
-
       this.cfg = z2dConfig;
 
-      // Ajustar tamaño interno del canvas
       this.canvas.width = this.cfg.canvasWidth;
       this.canvas.height = this.cfg.canvasHeight;
 
       this.groundY = this.cfg.canvasHeight - this.cfg.groundHeight;
 
-      // RNG simple para estrellas (determinista)
       let seed = 123456;
       const rng = () => {
-        // LCG sencillo
         seed = (seed * 1664525 + 1013904223) % 4294967296;
         return seed / 4294967296;
       };
@@ -358,50 +1223,256 @@
       this.starfield = new Z2DStarfield(this.cfg, rng);
       this.player = new Z2DPlayer(this.cfg, this.groundY);
 
-      // Suelo visual
       this.platforms = [];
-
-      // Plataforma de prueba: cuadrado 20px en el suelo
       const obstacleSize = 20;
-      const obstacleX = 320; // posición en el mundo
+      const obstacleX = 320;
       const obstacleY = this.groundY - obstacleSize;
       this.platforms.push(new Z2DPlatform(obstacleX, obstacleY, obstacleSize, obstacleSize));
+
+      this.bullets = [];
+      this.explosions = [];
+      this.timeSinceLastShot = 0;
+      this.shotsSinceRecoil = 0;
+      this.minTimeBetweenShots = 1 / this.cfg.bulletRate;
+
+      // Lluvia local
+      this.rain = new Z2DRainSystem(this.cfg, this.groundY);
+
+      // Exposición a lluvia y electrocutado
+      this.rainExposure = 0;
+      this.electroFlashTime = 0;
+
+      // Aim (dirección de disparo progresiva)
+      this.aimDirX = 1;
+      this.aimDirY = 0;
 
       this.lastTime = performance.now();
       this.cameraX = 0;
 
+      this.started = false;
+      this.stopped = false;
+      this.paused = false;
+
+      // Muerte / explosión
+      this.playerDead = false;
+      this.deathTimer = 0;
+      this.deathAnimDuration = 0.8;
+      this.electroNotified = false;
+
+      this.onElectrocuted = null; // callback externo
+
+      // Terremoto
+      this.shakeTime = 0;
+      this.shakeDuration = this.cfg.quakeDuration;
+
       this._loop = this._loop.bind(this);
     }
 
+    _updateAim(dt) {
+      // Determinar dirección objetivo según teclas
+      let hx = 0;
+      if (z2dKeys.right) hx += 1;
+      if (z2dKeys.left)  hx -= 1;
+
+      let hy = 0;
+      if (z2dKeys.down)  hy += 1;
+      if (z2dKeys.up)    hy -= 1;
+
+      if (hx === 0 && hy === 0) {
+        // Sin teclas de dirección: usar facing horizontal
+        hx = this.player.facing || 1;
+        hy = 0;
+      }
+
+      let len = Math.hypot(hx, hy);
+      if (len === 0) {
+        hx = 1; hy = 0; len = 1;
+      }
+      let targetX = hx / len;
+      let targetY = hy / len;
+
+      // Interpolación suave hacia el nuevo objetivo
+      const speed = 12;
+      const t = Math.min(1, speed * dt);
+      this.aimDirX += (targetX - this.aimDirX) * t;
+      this.aimDirY += (targetY - this.aimDirY) * t;
+
+      const lenAim = Math.hypot(this.aimDirX, this.aimDirY) || 1;
+      this.aimDirX /= lenAim;
+      this.aimDirY /= lenAim;
+    }
+
+    _shoot() {
+      const dirX = this.aimDirX;
+      const dirY = this.aimDirY;
+
+      const spawnX = this.player.worldX + this.player.width / 2 + dirX * (this.player.width / 2);
+      const spawnY = this.player.y + this.player.height / 2 + dirY * (this.player.height / 2);
+
+      const vx = dirX * this.cfg.bulletSpeed;
+      const vy = dirY * this.cfg.bulletSpeed;
+
+      this.bullets.push(new Z2DBullet(this.cfg, spawnX, spawnY, vx, vy));
+      this.explosions.push(new Z2DExplosion(spawnX, spawnY, false));
+
+      this.timeSinceLastShot = 0;
+      this.shotsSinceRecoil++;
+      // Recoil horizontal se basa en la componente X del disparo
+      if (this.shotsSinceRecoil >= this.cfg.bulletsPerRecoil) {
+        this.player.recoilVelX += -Math.sign(dirX || this.player.facing || 1) * this.cfg.recoilKickSpeed;
+        this.shotsSinceRecoil = 0;
+      }
+    }
+
+    _updateBullets(dt) {
+      for (const bullet of this.bullets) {
+        bullet.update(dt);
+        if (!bullet.alive) continue;
+
+        for (const p of this.platforms) {
+          if (!bullet.alive) break;
+          const bx = bullet.x;
+          const by = bullet.y;
+          if (bx >= p.x && bx <= p.x + p.w &&
+              by >= p.y && by <= p.y + p.h) {
+            const signX = Math.sign(bullet.vx || 0);
+            p.vx += signX * this.cfg.platformKnockbackSpeed;
+            bullet.alive = false;
+          }
+        }
+      }
+      this.bullets = this.bullets.filter(b => b.alive);
+
+      for (const ex of this.explosions) {
+        ex.update(dt);
+      }
+      this.explosions = this.explosions.filter(e => !e.dead);
+    }
+
+    _electrocutePlayer() {
+      if (this.playerDead) return;
+
+      this.rainExposure = 0;
+      this.electroFlashTime = 0.4;
+
+      const px = this.player.worldX + this.player.width / 2;
+      const py = this.player.y + this.player.height / 2;
+
+      // Explosión grande centrada en el cuadrado
+      this.explosions.push(new Z2DExplosion(px, py, true));
+
+      // Marcar jugador dañado y congelar movimiento
+      this.player.isDamaged = true;
+      this.playerDead = true;
+      this.deathTimer = 0;
+      this.electroNotified = false;
+      this.player.vx = 0;
+      this.player.vy = 0;
+      this.player.recoilVelX = 0;
+
+      // Iniciar terremoto
+      this.shakeTime = this.shakeDuration;
+    }
+
     start() {
+      if (this.started) return;
+      this.started = true;
+      this.stopped = false;
+      this.lastTime = performance.now();
       requestAnimationFrame(this._loop);
     }
 
+    setPaused(flag) {
+      this.paused = !!flag;
+      if (flag) z2dResetKeys();
+    }
+
+    requestStop() {
+      this.stopped = true;
+      z2dResetKeys();
+    }
+
+    isRunning() {
+      return this.started && !this.stopped;
+    }
+
     _update(dt) {
-      // Gestión del salto
-      if (z2dKeys.jump && this.player.onGround && this.player.jumpPhase === "idle") {
-        this.player.startJump();
+      for (const p of this.platforms) {
+        p.update(dt);
       }
 
-      // Actualizar jugador
+      // Actualizar terremoto (aunque esté muerto)
+      if (this.shakeTime > 0) {
+        this.shakeTime -= dt;
+        if (this.shakeTime < 0) this.shakeTime = 0;
+      }
+
+      if (this.playerDead) {
+        this.rain.update(dt);
+        this._updateBullets(dt);
+
+        this.deathTimer += dt;
+        if (this.electroFlashTime > 0) {
+          this.electroFlashTime -= dt;
+          if (this.electroFlashTime < 0) this.electroFlashTime = 0;
+        }
+
+        if (!this.electroNotified && this.deathTimer >= this.deathAnimDuration) {
+          this.electroNotified = true;
+          if (typeof this.onElectrocuted === "function") {
+            this.onElectrocuted();
+          }
+        }
+
+        this._updateCamera();
+        return;
+      }
+
+      // Lógica normal (vivo)
       this.player.update(dt, this.platforms);
 
-      // Actualizar cámara para efecto parallax tipo "empieza en mitad"
+      // Aim progresivo
+      this._updateAim(dt);
+
+      this.timeSinceLastShot += dt;
+      if (z2dKeys.fire && this.timeSinceLastShot >= this.minTimeBetweenShots) {
+        this._shoot();
+      }
+
+      this._updateBullets(dt);
+
+      // Lluvia
+      this.rain.update(dt);
+
+      // Comprobar exposición a lluvia (nuevo: 0.14s):
+      const centerX = this.player.worldX + this.player.width / 2;
+      const inRainZone = (centerX >= this.rain.startX && centerX <= this.rain.endX);
+      const protectedFromRain = (!this.player.onGround && this.player.vy > 0 && z2dKeys.jump);
+
+      if (inRainZone && !protectedFromRain) {
+        this.rainExposure += dt;
+        if (this.rainExposure >= 0.14) { // antes 1.0
+          this._electrocutePlayer();
+        }
+      } else {
+        this.rainExposure = 0;
+      }
+
+      if (this.electroFlashTime > 0) {
+        this.electroFlashTime -= dt;
+        if (this.electroFlashTime < 0) this.electroFlashTime = 0;
+      }
+
       this._updateCamera();
     }
 
     _updateCamera() {
       const halfWidth = this.cfg.canvasWidth / 2;
-
-      // Regla típica: el jugador se mantiene en el centro hasta que se llega a los bordes del mundo
       let targetCameraX = this.player.worldX - halfWidth + this.player.width / 2;
-
       if (targetCameraX < 0) targetCameraX = 0;
       if (targetCameraX > this.cfg.worldWidth - this.cfg.canvasWidth) {
         targetCameraX = this.cfg.worldWidth - this.cfg.canvasWidth;
       }
-
-      // Interpolación suave (podemos ajustarla más adelante)
       const lerpFactor = 0.15;
       this.cameraX = this.cameraX + (targetCameraX - this.cameraX) * lerpFactor;
     }
@@ -409,45 +1480,286 @@
     _draw() {
       const ctx = this.ctx;
 
-      // Fondo de estrellas con parallax
+      // Terremoto: offset aleatorio en cada frame mientras dure
+      let shakeX = 0;
+      let shakeY = 0;
+      if (this.shakeTime > 0) {
+        const t = this.shakeTime / this.shakeDuration; // 1 -> 0
+        const mag = this.cfg.quakeMagnitude * t;
+        shakeX = (Math.random() * 2 - 1) * mag;
+        shakeY = (Math.random() * 2 - 1) * mag;
+      }
+
+      ctx.save();
+      ctx.translate(shakeX, shakeY);
+
       this.starfield.draw(ctx, this.cameraX);
 
       // Suelo
       ctx.fillStyle = "#1a1a1a";
       ctx.fillRect(0, this.groundY, this.cfg.canvasWidth, this.cfg.canvasHeight - this.groundY);
 
-      // Plataformas (incluye el cuadrado de 20px)
-      for (const p of this.platforms) {
-        p.draw(ctx, this.cameraX);
-      }
+      // Plataformas
+      for (const p of this.platforms) p.draw(ctx, this.cameraX);
+
+      // Lluvia
+      this.rain.draw(ctx, this.cameraX);
+
+      // Balas y explosiones
+      for (const b of this.bullets)   b.draw(ctx, this.cameraX);
+      for (const ex of this.explosions) ex.draw(ctx, this.cameraX);
 
       // Jugador
       this.player.draw(ctx, this.cameraX);
+
+      // Flash blanco al electrocutarse
+      if (this.electroFlashTime > 0) {
+        const alpha = Math.min(0.7, this.electroFlashTime / 0.4 * 0.7);
+        ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+        ctx.fillRect(0, 0, this.cfg.canvasWidth, this.cfg.canvasHeight);
+      }
+
+      ctx.restore();
+
+      // Viñeta cuando está muerto (fuera del shake, para que la viñeta quede fija en pantalla)
+      if (this.playerDead) {
+        const t = Math.min(1, this.deathTimer / this.deathAnimDuration);
+        const maxAlpha = 0.85;
+        const alpha = maxAlpha * t;
+
+        const cx = this.cfg.canvasWidth / 2;
+        const cy = this.cfg.canvasHeight / 2;
+        const radius = Math.max(this.cfg.canvasWidth, this.cfg.canvasHeight);
+
+        const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
+        g.addColorStop(0.0, "rgba(0,0,0,0)");
+        g.addColorStop(0.7, `rgba(0,0,0,${alpha * 0.25})`);
+        g.addColorStop(1.0, `rgba(0,0,0,${alpha})`);
+
+        ctx.save();
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, this.cfg.canvasWidth, this.cfg.canvasHeight);
+        ctx.restore();
+      }
     }
 
     _loop(timestamp) {
+      if (this.stopped) return;
+
       const dt = Math.min((timestamp - this.lastTime) / 1000, 0.05);
       this.lastTime = timestamp;
 
-      this._update(dt);
+      if (!this.paused) {
+        this._update(dt);
+      }
       this._draw();
 
       requestAnimationFrame(this._loop);
     }
   }
 
-  /* ====== INICIALIZAR JUEGO CUANDO EL DOM ESTÉ LISTO ====== */
-  function z2dStartGame() {
+  /* ====== INICIALIZACIÓN: LOADING + MENÚ + JUEGO + OVERLAYS ====== */
+
+  function z2dInitApp() {
     const canvas = document.getElementById("z2d-game-canvas");
     if (!canvas) return;
-    const game = new Z2DGame(canvas);
-    game.start();
+
+    const loadingOverlay = document.getElementById("z2d-loading-overlay");
+    const loadingPercent = document.getElementById("z2d-loading-percent");
+    const loadingBarInner = document.getElementById("z2d-loading-bar-inner");
+
+    const menuOverlay = document.getElementById("z2d-menu-overlay");
+    const menuButtons = document.querySelectorAll(".z2d-menu-btn");
+
+    const pauseOverlay = document.getElementById("z2d-pause-overlay");
+    const pauseYes = document.getElementById("z2d-pause-yes");
+    const pauseNo = document.getElementById("z2d-pause-no");
+
+    const aboutOverlay = document.getElementById("z2d-about-overlay");
+    const aboutBack = document.getElementById("z2d-about-back");
+
+    const createOverlay = document.getElementById("z2d-create-overlay");
+    const createBack = document.getElementById("z2d-create-back");
+    const createSave = document.getElementById("z2d-create-save");
+    const createName = document.getElementById("z2d-create-name");
+    const createSize = document.getElementById("z2d-create-size");
+    const createDiff = document.getElementById("z2d-create-difficulty");
+    const createDiffLabel = document.getElementById("z2d-create-difficulty-label");
+
+    const electroOverlay = document.getElementById("z2d-electro-overlay");
+    const electroRestart = document.getElementById("z2d-electro-restart");
+    const electroMenu = document.getElementById("z2d-electro-menu");
+
+    let currentGame = null;
+    let pauseOpen = false;
+
+    function updateDifficultyLabel() {
+      const v = parseInt(createDiff.value, 10);
+      const map = {
+        1: "Muy fácil",
+        2: "Normal",
+        3: "Difícil",
+        4: "Muy difícil",
+        5: "Locura"
+      };
+      createDiffLabel.textContent = map[v] || "Normal";
+    }
+    updateDifficultyLabel();
+    createDiff.addEventListener("input", updateDifficultyLabel);
+
+    // Animación de carga 0-100
+    let progress = 0;
+    const intervalMs = 90;
+
+    const loadingTimer = setInterval(() => {
+      const step = 4 + Math.random() * 8;
+      progress = Math.min(100, progress + step);
+
+      loadingPercent.textContent = Math.round(progress) + "%";
+      loadingBarInner.style.width = progress + "%";
+
+      if (progress >= 100) {
+        clearInterval(loadingTimer);
+        loadingOverlay.classList.add("z2d-hidden");
+        setTimeout(() => {
+          loadingOverlay.style.display = "none";
+          menuOverlay.style.display = "flex";
+          menuOverlay.classList.add("z2d-visible");
+        }, 420);
+      }
+    }, intervalMs);
+
+    // ESC: Pausar / reanudar en modo historia
+    z2dEscapeHandler = function () {
+      if (!currentGame || !currentGame.isRunning()) return;
+
+      if (!pauseOpen) {
+        currentGame.setPaused(true);
+        pauseOverlay.style.display = "flex";
+        pauseOpen = true;
+      } else {
+        currentGame.setPaused(false);
+        pauseOverlay.style.display = "none";
+        pauseOpen = false;
+      }
+    };
+
+    pauseNo.addEventListener("click", () => {
+      if (!currentGame) return;
+      currentGame.setPaused(false);
+      pauseOverlay.style.display = "none";
+      pauseOpen = false;
+    });
+
+    pauseYes.addEventListener("click", () => {
+      if (currentGame) {
+        currentGame.requestStop();
+        currentGame = null;
+      }
+      pauseOverlay.style.display = "none";
+      pauseOpen = false;
+      z2dResetKeys();
+
+      menuOverlay.style.display = "flex";
+      menuOverlay.classList.add("z2d-visible");
+    });
+
+    // OVERLAYS secundarios
+    function openAbout() {
+      aboutOverlay.style.display = "flex";
+    }
+    function closeAbout() {
+      aboutOverlay.style.display = "none";
+    }
+    aboutBack.addEventListener("click", closeAbout);
+
+    function openCreate() {
+      createOverlay.style.display = "flex";
+    }
+    function closeCreate() {
+      createOverlay.style.display = "none";
+    }
+    createBack.addEventListener("click", closeCreate);
+
+    createSave.addEventListener("click", () => {
+      const name = createName.value.trim() || "(sin nombre)";
+      const size = createSize.value;
+      const diff = createDiffLabel.textContent;
+      alert("Boceto guardado (simulado):\n\n" +
+            "Nombre: " + name + "\n" +
+            "Tamaño: " + size + "\n" +
+            "Dificultad: " + diff + "\n\n" +
+            "Más adelante esto se guardará en base de datos.");
+    });
+
+    function showElectroOverlay() {
+      electroOverlay.style.display = "flex";
+    }
+
+    electroRestart.addEventListener("click", () => {
+      if (currentGame) {
+        currentGame.requestStop();
+        currentGame = null;
+      }
+      electroOverlay.style.display = "none";
+      z2dResetKeys();
+
+      currentGame = new Z2DGame(canvas);
+      currentGame.onElectrocuted = showElectroOverlay;
+      currentGame.start();
+    });
+
+    electroMenu.addEventListener("click", () => {
+      if (currentGame) {
+        currentGame.requestStop();
+        currentGame = null;
+      }
+      electroOverlay.style.display = "none";
+      z2dResetKeys();
+
+      menuOverlay.style.display = "flex";
+      menuOverlay.classList.add("z2d-visible");
+    });
+
+    // MENÚ PRINCIPAL
+    menuButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        const action = btn.getAttribute("data-action");
+        if (action === "story") {
+          if (currentGame) {
+            currentGame.requestStop();
+            currentGame = null;
+          }
+          electroOverlay.style.display = "none";
+          pauseOverlay.style.display = "none";
+          pauseOpen = false;
+          z2dResetKeys();
+
+          menuOverlay.classList.remove("z2d-visible");
+          menuOverlay.style.display = "none";
+
+          currentGame = new Z2DGame(canvas);
+          currentGame.onElectrocuted = showElectroOverlay;
+          currentGame.start();
+        } else if (action === "online") {
+          alert("Aventuras Online: próximamente podrás jugar mapas creados por otros jugadores y competir por puntos.");
+        } else if (action === "create") {
+          openCreate();
+        } else if (action === "skins") {
+          alert("Skins: en el futuro podrás personalizar tu personaje, desbloquear y comprar aspectos especiales.");
+        } else if (action === "settings") {
+          alert("Ajustes: aquí podrás cambiar personaje, sonido, controles y más opciones.");
+        } else if (action === "about") {
+          openAbout();
+        }
+      });
+    });
   }
 
   if (document.readyState === "complete" || document.readyState === "interactive") {
-    setTimeout(z2dStartGame, 0);
+    setTimeout(z2dInitApp, 0);
   } else {
-    document.addEventListener("DOMContentLoaded", z2dStartGame);
+    document.addEventListener("DOMContentLoaded", z2dInitApp);
   }
 })();
 </script>
